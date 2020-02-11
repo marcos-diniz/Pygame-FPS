@@ -1,6 +1,9 @@
 
 # Simple FPS using pygame and pyopengl
 
+## Screenshots
+<img  src="screenshots/simple_fps.png" width="106" height="727">
+
 ## How to Run
 
 ```shell

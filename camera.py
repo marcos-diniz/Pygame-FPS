@@ -12,7 +12,7 @@ class Camera:
         self.sensibility = 0.25
         self.prop = prop
         self.buffer = 2
-        self.starty = 30
+        self.starty = 80
         self.startx = 0
         self.pos = [0, self.starty, 0]
         

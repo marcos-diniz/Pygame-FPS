@@ -65,25 +65,18 @@ def main():
             pygame.mouse.set_pos(mousepos[0], 0)
             wall = False
 
-        #move up/down
+        #
         fwd = -1 * (keys[K_w]-keys[K_s])
         strafe = 1 * (keys[K_a]-keys[K_d])
         if abs(fwd) or abs(strafe):
             m = glGetDoublev(GL_MODELVIEW_MATRIX).flatten()
             camera.move(fwd, strafe)
 
-        
-        if event.type == pygame.MOUSEBUTTONUP:
-            bm4, bm5 = 0, 0
-            if event.button == 5:
-                bm5 = 1
-            if event.button == 4:
-                bm4 = 1
-
-            mup = -2 * (bm5-bm4)
-            if abs(mup):
-                mup = mup * 4
-                glTranslatef(0, mup, 0)
+        #
+        mup = -2 * (keys[K_UP]-keys[K_DOWN])
+        if abs(mup):
+            mup = mup * 4
+            glTranslatef(0, mup, 0)
             
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         world.draw_objects()

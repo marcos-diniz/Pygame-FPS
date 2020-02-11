@@ -7,8 +7,8 @@
 ## How to Run
 
 ```shell
-git clone https://github.com/p4je/FPS-using-pygame-and-pyopengl.git
-cd FPS-using-pygame-and-pyopengl
+git clone https://github.com/p4je/Pygame-FPS.git
+cd Pygame-FPS
 python3 -m pip install -r requirements.txt
 python3 main.py
 ```

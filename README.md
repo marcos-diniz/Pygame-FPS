@@ -4,7 +4,7 @@
 ## How to Run
 
 ```shell
-git clone https://github.com/p4je/Pygame-FPS.git
+git clone https://github.com/marcos-diniz/Pygame-FPS.git
 cd Pygame-FPS
 python3 -m pip install -r requirements.txt
 python3 main.py

@@ -1,48 +1,70 @@
 from math import sqrt, atan2
+import math
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
 __all__ = ["Camera"]
 
-
 class Camera:
-    def __init__(self, prop=(1,1)):
-        self.speed_move = 6
-        self.sensibility = 0.25
-        self.prop = prop
-        self.buffer = 2
-        self.starty = 80
-        self.startx = 0
-        self.pos = [0, self.starty, 0]
+    def __init__(self, fov, sensibility, speed, screen_size, nearclip, farclip):
+        self._speed_move = speed
+        self._sensibility = sensibility
+        self._aspect = (screen_size[0]/screen_size[1])
+        self._screen_size = screen_size
+        self._fov = fov
+        self._location = [-839.2773821545411,
+                          -116.64508592611948,
+                          479.71180621362146]
+
+        self._center = None
+        self._rotation = [0,0,0]
+        self._start = 0
+        self._nearclip = nearclip
+        self._farclip = farclip
+
+        glMatrixMode(GL_PROJECTION)
+        gluPerspective(self._fov, self._aspect, self._nearclip, self._farclip)
+        glMatrixMode(GL_MODELVIEW)
         
-        gluPerspective(90, (self.prop[0] // self.prop[1]), 0.1, 10000)
-        glTranslatef(0, -self.starty, 0)
-    
-    def move(self, fwd, strafe):
-        fwd *= self.speed_move
-        strafe *= self.speed_move
-        m = glGetDoublev(GL_MODELVIEW_MATRIX).flatten()
-        glTranslatef(fwd*m[2], 0, fwd*m[10])#FRONT/BACK-MOVE
-        glTranslatef(strafe*m[0], 0, strafe*m[8])#LEFT/RIGHT-MOVE
-        #Save New Position
-        self.pos[0] += fwd*m[2] + strafe*m[0]
-        self.pos[2] += fwd*m[10] + strafe*m[8]
-    
+        glTranslatef(self._location[0], self._location[1], self._location[2])
+        self.rotate(-350.02116749999999, 0.4055126249999996)
+
     def rotate(self, mouse_dx, mouse_dy):
         _buffer = glGetDoublev(GL_MODELVIEW_MATRIX)
-        c = (-1 * np.mat(_buffer[:3, :3]) * np.mat(_buffer[3, :3]).T).reshape(3, 1)
-        #-camera_center_in_3d
-        glTranslate(c[0], c[1], c[2])
+        self._center = (-1 * np.mat(_buffer[:3,:3]) * \
+            np.mat(_buffer[3,:3]).T).reshape(3,1)
+
+        glTranslate(self._center[0],self._center[1],self._center[2])
         
         m = _buffer.flatten()
-        angle_x = mouse_dx * self.sensibility
-        angle_y = mouse_dy * self.sensibility
         
-        glRotate(angle_x, m[1], m[5], m[9])  # [1]
-        glRotate(angle_y, m[0], m[4], m[8])  # [1]
-        # compensate roll - make sure camera's "up" is actually upwards
-        glRotate(atan2(-m[4], m[5]) * 57.29577, m[2], m[6], m[10])
-        #camera_center_in_3d
-        glTranslate(-c[0], -c[1], -c[2])
-    
+        anglex = mouse_dx * self._sensibility
+        angley = mouse_dy * self._sensibility
+
+        glRotatef(anglex, m[1],m[5],m[9])
+        glRotatef(angley, m[0],m[4],m[8])
+
+        self._rotation[0] += anglex
+        self._rotation[1] += angley
+        
+        glRotated(-math.atan2(-m[4],m[5]) * \
+            57.295779513082320876798154814105 ,m[2],m[6],m[10])
+        glTranslate(-self._center[0],-self._center[1],-self._center[2])
+
+    def move(self, front=False, back=False, left=False, right=False,
+     down=False, up=False):
+        #Move fron, back, left, right, down,up
+        fwd = self._speed_move * (front-back) 
+        strafe = self._speed_move * (left-right)
+        mup = self._speed_move * (down-up)
+        
+        if abs(fwd) or abs(strafe) or abs(mup):
+            m = glGetDoublev(GL_MODELVIEW_MATRIX).flatten()
+            glTranslate(fwd*m[2],fwd*m[6],fwd*m[10])
+            glTranslate(strafe*m[0],strafe*m[4],strafe*m[8])
+            glTranslate(0, mup, 0)
+            #save new position
+            self._location[0] += fwd*m[2] + strafe*m[0]
+            self._location[1] += fwd*m[6] + strafe*m[4] + mup
+            self._location[2] += fwd*m[10] + strafe*m[8]

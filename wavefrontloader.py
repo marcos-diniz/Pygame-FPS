@@ -5,7 +5,7 @@ from OpenGL.GL import *
 def mtl_load(filename):
     contents = {}
     mtl = None
-    for line in open(filename, "r"):
+    for line in open(f"wavefronts/{filename}", "r"):
         if line.startswith('#'): continue
         values = line.split()
         if not values: continue

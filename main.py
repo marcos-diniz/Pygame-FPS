@@ -5,31 +5,28 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
 from math import atan2
-
 from camera import *
-from world import *
-
+from wavefrontloader import *
 
 def main():
     pygame.init()
-    height = 700
-    width = 1000
+    width, height = 1000, 700 
     display = (width, height)
     screen = pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.mouse.set_visible(False)
     pygame.event.set_grab(True)
-    pygame.mouse.set_pos(width / 2, height / 2)
+    pygame.mouse.set_pos(width // 2, height // 2)
+    
     glEnable(GL_DEPTH_TEST)
     glDepthFunc(GL_LEQUAL)
-
     
-    camera = Camera(prop=(width, height))
-    world = World()
+    camera = Camera(fov=60, sensibility=0.35, speed=6, screen_size=display,
+     nearclip=0.1, farclip=10000)
+    wavefront_obj = WavefrontObject('wavefronts/map.obj')
 
-    
     clock = pygame.time.Clock()
     exit = True
-    wall = True
+    paused = True
 
     while exit:
         clock.tick(60)
@@ -37,52 +34,29 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-        
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_PAUSE or event.key == pygame.K_p:
+                    paused = not paused
+
         mouse_dx, mouse_dy = pygame.mouse.get_rel()
         mousepos = pygame.mouse.get_pos()
         keys = pygame.key.get_pressed()
 
-        #EXIT GAME
+        #stop the while loop
         if keys[pygame.K_ESCAPE]:
             exit = False
 
-        
-        #ROTATE CAMERA AND RESET MOUSE POSITION
-        if wall:
+        if not paused:
+            camera.move(keys[K_w], keys[K_s], keys[K_a], keys[K_d], keys[K_DOWN], keys[K_UP])
+
             camera.rotate(mouse_dx, mouse_dy)
-
-        wall = True
-        if mousepos[0] <= 1:
-            pygame.mouse.set_pos(width, mousepos[1])
-            wall = False
-        if mousepos[0] >= width-1:
-            pygame.mouse.set_pos(0, mousepos[1])
-            wall = False
-        if mousepos[1] <= 1:
-            pygame.mouse.set_pos(mousepos[0], height)
-            wall = False
-        if mousepos[1] >= height-1:
-            pygame.mouse.set_pos(mousepos[0], 0)
-            wall = False
-
-        #
-        fwd = -1 * (keys[K_w]-keys[K_s])
-        strafe = 1 * (keys[K_a]-keys[K_d])
-        if abs(fwd) or abs(strafe):
-            m = glGetDoublev(GL_MODELVIEW_MATRIX).flatten()
-            camera.move(fwd, strafe)
-
-        #
-        mup = -2 * (keys[K_UP]-keys[K_DOWN])
-        if abs(mup):
-            mup = mup * 4
-            glTranslatef(0, mup, 0)
-            
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        world.draw_objects()
+        
+        #DRAWOBJECTS
+        wavefront_obj.draw()
         pygame.display.flip()
         
-
 if __name__ == '__main__':
     main()
 
